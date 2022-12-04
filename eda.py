@@ -1,0 +1,163 @@
+#%%
+# # Initital Dataset Cleaning and Manipulation 
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+import rfit
+import os
+# # %%
+cwd = os.getcwd()
+print(cwd)
+dataset = pd.read_csv('Dataset/OnlineNewsPopularity.csv')
+# # %%
+# Basic checks
+rfit.dfchk(dataset)
+# 61 total attributes, 39644 rows
+# No missing values/ No nulls
+
+# %%
+# Info on Dataset Features:
+#
+# Some of the attributes in the dataset have already been encoded for machine learning. However, we will decode it into a single column for visualization purposes. Such columns include: 
+# 1. Data_Channel : Type of article (Entertainment, lifestyle, Media, Technology, World etc.)
+# 2. Publish Day : Day the article was pubished (Monday, Tuesday, etc.)
+
+# dataset['Data_Channel'] = np.where(dataset['data_channel_is_lifestyle']==1,'Lifestyle',np.where(dataset['data_channel_is_entertainment']==1,"Entertainment",np.where(dataset['data_channel_is_bus']==1,'Business',np.where(dataset['data_channel_is_socmed']==1,'Social Media',np.where(dataset['data_channel_is_tech']==1,'Technology','World')))))
+
+# For some reason, above code was giving key-error. After further checking, i foudn out that several column titles in the dataset have leading or trailing empty spaces. Needed to fix this
+#%%
+# First identifying what columns have these extra spaces
+bad_columns = [x for x in dataset.columns if x.endswith(' ') or x.startswith(' ')]
+print('Number of Columns with unwanted spaces: ',len(bad_columns))
+
+# Almost all columns have this problem, so we'll fix this
+dataset.columns = dataset.columns.str.strip()
+
+# Checking to see if the problem is resolved
+bad_columns_validation = [x for x in dataset.columns if x.endswith(' ') or x.startswith(' ')]
+print('\nAfter Fix:\nNumber of Columns still with issue: ',len(bad_columns_validation))
+
+#%%
+# Running the code again
+
+dataset_viz = dataset.copy()
+
+dataset_viz['Data_Channel'] = np.where(dataset_viz['data_channel_is_lifestyle']==1,'Lifestyle',np.where(dataset_viz['data_channel_is_entertainment']==1,"Entertainment",np.where(dataset_viz['data_channel_is_bus']==1,'Business',np.where(dataset_viz['data_channel_is_socmed']==1,'Social Media',np.where(dataset_viz['data_channel_is_tech']==1,'Technology','World')))))
+# dataset.head()
+
+#%%
+# Now doing the same thing for Day of the Week
+dataset_viz['Publish_DOW'] = np.where(dataset_viz['weekday_is_monday']==1,'Monday',np.where(dataset_viz['weekday_is_tuesday']==1,"Tuesday",np.where(dataset_viz['weekday_is_wednesday']==1,'Wednesday',np.where(dataset_viz['weekday_is_thursday']==1,'Thursday',np.where(dataset_viz['weekday_is_friday']==1,'Friday',np.where(dataset_viz['weekday_is_saturday'],'Saturday','Sunday'))))))
+# dataset.head()
+
+#%%
+# We can go ahead and remove the columns that have been utilized
+dataset_viz = dataset_viz.drop(['weekday_is_saturday','weekday_is_friday','weekday_is_sunday','weekday_is_thursday','weekday_is_wednesday','weekday_is_tuesday','weekday_is_monday','data_channel_is_lifestyle','data_channel_is_entertainment','data_channel_is_bus','data_channel_is_socmed','data_channel_is_tech','data_channel_is_world'],axis=1)
+# dataset_viz.shape
+
+#%%
+# Saving out this dataset for collaboration
+dataset_viz.to_csv('Dataset/OnlineNewsPopularity_Viz.csv', index=False)
+
+# We're going to use dataset_viz for visualizations and dataset for modeling
+
+#%%
+# Some of the features are dependent of particularities of the Mashable service (whose articles have been used as data source): articles often reference other articles published in the same service; and articles have meta-data, such as keywords, data channel type and total number of shares (when considering Facebook, Twitter, Google+, LinkedIn, Stumble-Upon and Pinterest). The minimum, average and maximum number of shares was determined of all Mashable links cited in the article were extracted to prepare the data. Similarly, rank of all article keyword average shares was determined, in order to get the worst, average and best keywords. For each of these keywords, the minimum, average and maximum number of shares was extracted as a feature. [Reference: Research Paper]
+
+# Several features are extracted by performing natural language processing on the original articles. The Latent Dirichlet Allocation (LDA) algorithm was applied to all Mashable articles in order to first identify the five top relevant topics and then measure the closeness of current article to such topics. To compute the subjectivity and polarity sentiment analysis, Pattern web mining module was adopted, allowing the computation of sentiment polarity and subjectivity scores. These are such features:
+# 1. Closeness to top 5 LDA topics 
+# 2. Title subjectivity ratio 
+# 3. Article text subjectivity score and its absolute difference to 0.5 
+# 4. Title sentiment polarity 
+# 5. Rate of positive and negative words 
+# 6. Pos. words rate among non-neutral words 
+# 7. Neg. words rate among non-neutral words 
+# 8. Polarity of positive words (min./avg./max.) 
+# 9. Polarity of negative words (min./avg./max.) 
+# 10. Article text polarity score and its absolute difference to 0.5
+# [Reference: Research Paper]
+
+# Even though we don't yet understand what these variables represent exactly, we will keep them for the purpose of model building.
+
+#%%
+# Reading the csv file
+sharedf = pd.read_csv('Dataset/OnlineNewsPopularity_Viz.csv')
+print(sharedf.head())
+# %%
+print(len(sharedf))
+# %%
+sharedf=sharedf.drop_duplicates()
+print(sharedf.isna().sum())
+# There are no duplicate and null values in the dataframe
+# %%
+sharedf.describe()
+#%%
+sharedf = sharedf[sharedf['n_tokens_title']!=0]
+# %%
+sharedf = sharedf[sharedf['n_tokens_content']!=0]
+#%%
+print(len(sharedf))
+# %%
+#correlation between the columns
+plt.figure(figsize=(15,15))
+correlations = sharedf.corr()
+print(correlations)
+sns.heatmap(correlations, cmap="Blues")
+
+
+#%%
+sharedf = sharedf.drop('url',axis=1)
+#%%
+#From the collerations we can observe that n_non_stop_words, n_non_stop_unique_tokens, kw_avg_min has high correlations, we are dropping these columns
+sharedf= sharedf.drop(["n_non_stop_unique_tokens","n_non_stop_words","kw_avg_min"],axis=1)
+
+# %%
+print(sharedf.head())
+# %%
+plt.figure(figsize=(15,10))
+sns.scatterplot( x='n_tokens_content', y='shares', data=sharedf)
+# %%
+plt.figure(figsize=(15,10))
+sns.scatterplot( x='n_tokens_title', y='shares', data=sharedf)
+
+# %%
+group_1= pd.DataFrame(sharedf.groupby("Publish_DOW").mean()["shares"])
+
+sns.barplot(x= group_1.index, y="shares", data=group_1)
+# %%
+group_2= pd.DataFrame(sharedf.groupby("Data_Channel").mean()["shares"])
+
+sns.barplot(x= group_2.index, y="shares", data=group_2)
+# %%
+fig = plt.subplots(figsize=(10,10))
+sns.scatterplot(x='avg_positive_polarity', y='shares', data=sharedf, alpha=0.5)
+# %%
+fig = plt.subplots(figsize=(10,10))
+sns.scatterplot(x='num_imgs', y='shares', data=sharedf)
+
+# %%
+plt.figure(figsize=(30,30),dpi=200)
+columnskw = ['kw_min_min', 'kw_max_min',  'kw_min_max', 'kw_max_max', 'kw_avg_max', 'kw_min_avg', 'kw_max_avg', 'kw_avg_avg', 'shares']
+sns.pairplot(data = sharedf, vars=columnskw, diag_kind="kde")
+# %%
+plt.figure(figsize=(15,10))
+sns.scatterplot(y = "shares", x = "num_imgs", data=sharedf)
+# %%
+plt.figure(figsize=(15,10))
+sns.scatterplot(y = "shares", x = "num_videos", data=sharedf)
+
+# %%
+group_3= pd.DataFrame(sharedf.groupby("is_weekend").mean()["shares"])
+sns.barplot(x= group_3.index, y="shares", data=group_3)
+
+# %%
+group_4= pd.DataFrame(sharedf.groupby("is_weekend").count()['shares'])
+print(group_4)
+sns.barplot(x= group_4.index, y="shares", data=group_4)
+plt.ylabel("count of the shares for weekend vs weekday")
+
+# %%
+
+
+# %%
