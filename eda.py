@@ -82,43 +82,74 @@ dataset_viz.to_csv('Dataset/OnlineNewsPopularity_Viz.csv', index=False)
 
 #%%
 # Reading the csv file
+
 sharedf = pd.read_csv('Dataset/OnlineNewsPopularity_Viz.csv')
 print(sharedf.head())
+
 # %%
 print(len(sharedf))
+
+#There are total 39644 rows in the entire dataset
+
 # %%
 sharedf=sharedf.drop_duplicates()
 print(sharedf.isna().sum())
-# There are no duplicate and null values in the dataframe
+
+# Any duplicates values in the data set are removed, and there are no 
+#null values the data set.
+
 # %%
 sharedf.describe()
+
 #%%
 sharedf = sharedf[sharedf['n_tokens_title']!=0]
+
 # %%
 sharedf = sharedf[sharedf['n_tokens_content']!=0]
+
+#The n_tokens_title and n_tokens_content columns which contains the 
+# value 0 is removed
+
 #%%
 print(len(sharedf))
+#After removing these 0 values, the length of the dataframe is 38463.
+#1180 rows are removed and the dataset is stored.
+ 
+#%%
+print(sharedf['shares'].mean())
+print(sharedf['shares'].median())
+
+# The mean value of the shares is 3355.56, and the median value of the shares is 1400
+
 # %%
 #correlation between the columns
 plt.figure(figsize=(15,15))
+
 correlations = sharedf.corr()
 print(correlations)
+
 sns.heatmap(correlations, cmap="Blues")
 
+# From the heat map(correlation plot) we can observe that n_non_stop_unique_tokens, n_non_stop_words, kw_avg_min
+# has the high correlation
 
 #%%
 sharedf = sharedf.drop('url',axis=1)
+
 #%%
 #From the collerations we can observe that n_non_stop_words, n_non_stop_unique_tokens, kw_avg_min has high correlations, we are dropping these columns
+
 sharedf= sharedf.drop(["n_non_stop_unique_tokens","n_non_stop_words","kw_avg_min"],axis=1)
 
 # %%
 print(sharedf.head())
 # %%
 plt.figure(figsize=(15,10))
+
 sns.scatterplot( x='n_tokens_content', y='shares', data=sharedf)
 # %%
 plt.figure(figsize=(15,10))
+
 sns.scatterplot( x='n_tokens_title', y='shares', data=sharedf)
 
 # %%
@@ -131,31 +162,41 @@ group_2= pd.DataFrame(sharedf.groupby("Data_Channel").mean()["shares"])
 sns.barplot(x= group_2.index, y="shares", data=group_2)
 # %%
 fig = plt.subplots(figsize=(10,10))
+
+
 sns.scatterplot(x='avg_positive_polarity', y='shares', data=sharedf, alpha=0.5)
 # %%
 fig = plt.subplots(figsize=(10,10))
 sns.scatterplot(x='num_imgs', y='shares', data=sharedf)
 
 # %%
+#pair plots between all the kw values
+
 plt.figure(figsize=(30,30),dpi=200)
+
 columnskw = ['kw_min_min', 'kw_max_min',  'kw_min_max', 'kw_max_max', 'kw_avg_max', 'kw_min_avg', 'kw_max_avg', 'kw_avg_avg', 'shares']
 sns.pairplot(data = sharedf, vars=columnskw, diag_kind="kde")
 # %%
 plt.figure(figsize=(15,10))
 sns.scatterplot(y = "shares", x = "num_imgs", data=sharedf)
+plt.title("scatter plot between shares and number of images")
+
 # %%
 plt.figure(figsize=(15,10))
 sns.scatterplot(y = "shares", x = "num_videos", data=sharedf)
+plt.title("scatter plot between shares and number of videos")
 
 # %%
 group_3= pd.DataFrame(sharedf.groupby("is_weekend").mean()["shares"])
 sns.barplot(x= group_3.index, y="shares", data=group_3)
+plt.title("bar plot for shares based on whether day is weekend or not")
 
 # %%
 group_4= pd.DataFrame(sharedf.groupby("is_weekend").count()['shares'])
 print(group_4)
 sns.barplot(x= group_4.index, y="shares", data=group_4)
 plt.ylabel("count of the shares for weekend vs weekday")
+plt.title("count of the shares between weekend or weekday")
 
 # %%
 
