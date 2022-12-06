@@ -206,6 +206,6 @@ plt.ylabel("count of the shares for weekend vs weekday")
 plt.title("count of the shares between weekend or weekday")
 
 # %%
-
+#model building
 
 # %%
