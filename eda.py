@@ -8,12 +8,17 @@ import rfit
 import os
 # # %%
 cwd = os.getcwd()
+
 print(cwd)
+
 dataset = pd.read_csv('Dataset/OnlineNewsPopularity.csv')
 # # %%
 # Basic checks
+
 rfit.dfchk(dataset)
+
 # 61 total attributes, 39644 rows
+
 # No missing values/ No nulls
 
 # %%
@@ -126,11 +131,13 @@ print(sharedf['shares'].median())
 plt.figure(figsize=(15,15))
 
 correlations = sharedf.corr()
+
 print(correlations)
 
 sns.heatmap(correlations, cmap="Blues")
 
 # From the heat map(correlation plot) we can observe that n_non_stop_unique_tokens, n_non_stop_words, kw_avg_min
+
 # has the high correlation
 
 #%%
