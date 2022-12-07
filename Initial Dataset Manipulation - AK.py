@@ -23,7 +23,8 @@ rfit.dfchk(dataset)
 
 # dataset['Data_Channel'] = np.where(dataset['data_channel_is_lifestyle']==1,'Lifestyle',np.where(dataset['data_channel_is_entertainment']==1,"Entertainment",np.where(dataset['data_channel_is_bus']==1,'Business',np.where(dataset['data_channel_is_socmed']==1,'Social Media',np.where(dataset['data_channel_is_tech']==1,'Technology','World')))))
 
-# For some reason, above code was giving key-error. After further checking, i foudn out that several column titles in the dataset have leading or trailing empty spaces. Needed to fix this
+# For some reason, above code was giving key-error. After further checking, i found out that several column titles in the dataset have leading or trailing empty spaces. Needed to fix this
+
 #%%
 # First identifying what columns have these extra spaces
 bad_columns = [x for x in dataset.columns if x.endswith(' ') or x.startswith(' ')]
@@ -35,6 +36,11 @@ dataset.columns = dataset.columns.str.strip()
 # Checking to see if the problem is resolved
 bad_columns_validation = [x for x in dataset.columns if x.endswith(' ') or x.startswith(' ')]
 print('\nAfter Fix:\nNumber of Columns still with issue: ',len(bad_columns_validation))
+# Problem resolved!
+
+#%%
+# Saving the cleaned dataset back to the path
+# dataset.to_csv('Dataset\\OnlineNewsPopularity.csv',index=False)
 
 #%%
 # Running the code again
@@ -56,7 +62,7 @@ dataset_viz = dataset_viz.drop(['weekday_is_saturday','weekday_is_friday','weekd
 
 #%%
 # Saving out this dataset for collaboration
-dataset_viz.to_csv('Dataset\\OnlineNewsPopularity_Viz.csv')
+# dataset_viz.to_csv('Dataset\\OnlineNewsPopularity_Viz.csv',index=False)
 
 # We're going to use dataset_viz for visualizations and dataset for modeling
 
