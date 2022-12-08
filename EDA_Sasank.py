@@ -102,3 +102,28 @@ OnlineNewsdf = OnlineNewsdf[OnlineNewsdf['n_tokens_content']!=0]
 
 #The n_tokens_content columns which contains the 
 # value 0 is removed
+
+
+
+# # Correlation Heatmap
+# %%
+plt.figure(figsize=(42, 15))
+heatmap = sns.heatmap(OnlineNewsdf.corr(), vmin=-1, vmax=1, annot=True, cmap='BrBG')
+heatmap.set_title('Correlation Heatmap', fontdict={'fontsize':18}, pad=12);
+
+
+# Since URL is a non-numeric attribute and will not add value to our analysis so dropping it from the dataset
+# Also timedelta is a non-predictive attribute and not a feature of the data set so we can drop it from the dataset
+# We observe multicollinearity variables "n_non_stop_unique_tokens","n_non_stop_words","kw_avg_min", hence dropping these variables.
+# %%
+OnlineNewsdf = OnlineNewsdf.drop('url',axis=1)
+OnlineNewsdf = OnlineNewsdf.drop('timedelta',axis=1)
+OnlineNewsdf= OnlineNewsdf.drop(["n_non_stop_unique_tokens","n_non_stop_words","kw_avg_min"],axis=1)
+
+# %%
+OnlineNewsdf.head()
+
+#Dropping Unnamed Index column, as it dosen't make sense.
+# %%
+OnlineNewsdf = OnlineNewsdf.reset_index(drop=True)
+OnlineNewsdf.head()
