@@ -127,3 +127,7 @@ OnlineNewsdf.head()
 # %%
 OnlineNewsdf = OnlineNewsdf.reset_index(drop=True)
 OnlineNewsdf.head()
+
+# %%
+plt.figure(figsize=(10,5))
+ax = sns.scatterplot(y = 'shares', x = 'n_tokens_title', data = OnlineNewsdf, palette = 'muted');
