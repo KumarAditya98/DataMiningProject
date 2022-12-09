@@ -6,6 +6,10 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import rfit
 import os
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.preprocessing import StandardScaler
+from sklearn.tree import plot_tree
 # # %%
 cwd = os.getcwd()
 
@@ -207,5 +211,58 @@ plt.title("count of the shares between weekend or weekday")
 
 # %%
 #model building
+#Decision Tree Regression
+from sklearn.tree import plot_tree
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+X = pd.get_dummies(sharedf.drop('shares',axis=1),drop_first=True)
 
+y = sharedf['shares']
+X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.33, random_state=42)
+scaler = StandardScaler()
+Scaled_Xtrain = scaler.fit_transform(X_train)
+Scaled_Xtest= scaler.transform(X_test)
+model = DecisionTreeRegressor(random_state=0, max_depth= 5)
+model.fit(Scaled_Xtrain, y_train)
+predicted_values = model.predict(Scaled_Xtest)
+
+
+plt.figure(figsize=(20,15), dpi=200)
+plot_tree(model, feature_names=X.columns, filled=True);
+#%%
+print(f"The mean value of the shares is {sharedf['shares'].mean()}")
+features = model.feature_importances_
+pd.DataFrame(index=X.columns, data=features, columns=['Feature Importance']).sort_values('Feature Importance', ascending=False)
+print(mean_absolute_error(y_test, predicted_values))
+print(np.sqrt(mean_squared_error(y_test, predicted_values)))
+
+#%%
+pd.set_option('display.float_format', lambda x: '%.3f' % x)
+
+model_2 = DecisionTreeRegressor(random_state=0, max_depth=3)
+model_2.fit(Scaled_Xtrain, y_train)
+predicted_values1 = model_2.predict(Scaled_Xtest)
+features1 = model_2.feature_importances_
+pd.DataFrame(index=X.columns, data= features1, columns=['Feature Importance']).sort_values('Feature Importance', ascending=False)
+print(mean_absolute_error(y_test, predicted_values1))
+print(np.sqrt(mean_squared_error(y_test, predicted_values1)))
+plot_tree(model_2, feature_names= X.columns, filled=True)
+#%%
+X_test.head()
+# %%
+#LINEAR REGRESSION
+from sklearn.linear_model import LinearRegression
+model_lr = LinearRegression()
+model_lr.fit(Scaled_Xtrain, y_train)
+predictons = model_lr.predict(Scaled_Xtest)
+#%%
+print(mean_absolute_error(y_test, predictons))
+print(np.sqrt(mean_squared_error(y_test, predictons)))
+print(min(sharedf['shares']))
+
+# %%
+print(sharedf.columns)
+# %%
+
+
+# %%
 # %%
