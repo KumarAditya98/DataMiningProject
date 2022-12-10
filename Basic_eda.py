@@ -67,7 +67,7 @@ dataset_viz = dataset_viz.drop(['weekday_is_saturday','weekday_is_friday','weekd
 
 #%%
 # Saving out this dataset for collaboration
-dataset_viz.to_csv('Dataset/OnlineNewsPopularity_Viz.csv', index=False)
+#dataset_viz.to_csv('Dataset/OnlineNewsPopularity_Viz.csv', index=False)
 
 # We're going to use dataset_viz for visualizations and dataset for modeling
 
@@ -265,4 +265,52 @@ print(sharedf.columns)
 
 
 # %%
+# %%
+threshold = sharedf.shares.median()
+sharedf['target'] = np.where(sharedf.shares>threshold,1,0)
+# %%
+print(sharedf['target'])
+# %%
+## KNN Classification
+pd.set_option('display.float_format', lambda x: '%.3f' % x)
+
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import classification_report,confusion_matrix,accuracy_score
+
+X = pd.get_dummies(sharedf.drop(['shares','target'],axis=1),drop_first=True)
+y = sharedf['target']
+X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.33, random_state=42)
+scaler = StandardScaler()
+Scaled_Xtrain = scaler.fit_transform(X_train)
+Scaled_Xtest= scaler.transform(X_test)
+knn_model = KNeighborsClassifier(n_neighbors=14)
+knn_model.fit(Scaled_Xtrain,y_train)
+y_pred = knn_model.predict(Scaled_Xtest)
+accuracy_score(y_test,y_pred)
+cf_matrix = confusion_matrix(y_test,y_pred)
+
+print(classification_report(y_test,y_pred))
+import seaborn as sns
+sns.heatmap(cf_matrix, annot=True,cmap='Blues', fmt='g')
+# %%
+#Choosing K value
+test_error_rates = []
+
+
+for k in range(1,30):
+    knn_model = KNeighborsClassifier(n_neighbors=k)
+    knn_model.fit(Scaled_Xtrain,y_train) 
+   
+    y_pred_test = knn_model.predict(Scaled_Xtest)
+    
+    test_error = 1 - accuracy_score(y_test,y_pred_test)
+    test_error_rates.append(test_error)
+# %%
+plt.figure(figsize=(10,6),dpi=200)
+plt.plot(range(1,30),test_error_rates,label='Test Error')
+plt.legend()
+plt.ylabel('Error Rate')
+plt.xlabel("K Value")
+# %%
+print(len(y_pred_test))
 # %%
