@@ -236,7 +236,7 @@ dfviz = dfviz[dfviz['n_tokens_content']!=0]
 print(dfviz.n_tokens_title.value_counts())
 # Do not see 0, therefore no errors in title
 
-# Now lets see if their relationship with each other and then with number of shares.
+# Now lets see their relationship with each other and then with number of shares.
 
 
  
