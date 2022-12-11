@@ -110,8 +110,22 @@ sns.relplot(
     height = 5, aspect = .75, facet_kws = dict(sharex = False),
 )
 
- 
- 
+
+
+
+
+# %%
+sns.set_theme(style="ticks")
+palette = sns.color_palette("rocket_r")
+sns.relplot(
+    data = OnlineNewsdf,
+    x = "n_tokens_title", y = "shares",
+    hue = "Data_Channel", kind = "line", palette = palette,
+    height = 5, aspect = .75, facet_kws = dict(sharex = False),
+)
+
+
+
 # %%
 sns.set_style(style='whitegrid')
 sns.scatterplot(
@@ -125,24 +139,38 @@ plt.title('Analysing Popularity based on Shares')
 plt.xlabel('No of Tokens Content')
 plt.ylabel('Shares')
 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
+plt.show() 
+ 
+
+
+
+# %%
+sns.set_style(style='whitegrid')
+sns.scatterplot(
+    data=OnlineNewsdf, 
+    x='n_tokens_content', 
+    y='shares', 
+    hue='Data_Channel',
+    palette='Paired_r'
+    )
+plt.title('Analysing Popularity based on Shares')
+plt.xlabel('No of Tokens Content')
+plt.ylabel('Shares')
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
 plt.show()
 
 
 # %%
-sns.countplot(x ='popularity', hue = "Data_Channel", data = OnlineNewsdf)
+sns.countplot(x ='Data_Channel', hue = "popularity", data = OnlineNewsdf)
 plt.show()
 
-
-# %%
-sns.countplot(x ='popularity', data = OnlineNewsdf)
-plt.show()
 
 
 #%%
 df = OnlineNewsdf[OnlineNewsdf['popularity'] == "Exceptional"]
 len(df)
 
-
+# Discussing
 # %%
 sns.countplot( x= "Publish_DOW", hue="Data_Channel", data=OnlineNewsdf)
 plt.show()
@@ -190,3 +218,4 @@ sns.histplot(
 )
 ax.xaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
 ax.set_xticks([500, 1000, 2000, 5000, 10000])
+# %%
