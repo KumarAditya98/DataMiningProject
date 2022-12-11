@@ -157,11 +157,11 @@ print(sharedf.head())
 # %%
 plt.figure(figsize=(15,10))
 
-sns.scatterplot( x='n_tokens_content', y='shares', data=sharedf)
+sns.scatterplot( x='n_tokens_content', y='shares',hue="target", data=sharedf)
 # %%
 plt.figure(figsize=(15,10))
 
-sns.scatterplot( x='n_tokens_title', y='shares', data=sharedf)
+sns.scatterplot( x='n_tokens_title', y='shares',hue="target", data=sharedf)
 
 # %%
 group_1= pd.DataFrame(sharedf.groupby("Publish_DOW").mean()["shares"])
@@ -175,10 +175,10 @@ sns.barplot(x= group_2.index, y="shares", data=group_2)
 fig = plt.subplots(figsize=(10,10))
 
 
-sns.scatterplot(x='avg_positive_polarity', y='shares', data=sharedf, alpha=0.5)
+sns.scatterplot(x='avg_positive_polarity', y='shares', data=sharedf, hue="target", alpha=0.5)
 # %%
 fig = plt.subplots(figsize=(10,10))
-sns.scatterplot(x='num_imgs', y='shares', data=sharedf)
+sns.scatterplot(x='num_imgs', y='shares', hue="target",data=sharedf)
 
 # %%
 #pair plots between all the kw values
@@ -186,15 +186,15 @@ sns.scatterplot(x='num_imgs', y='shares', data=sharedf)
 plt.figure(figsize=(30,30),dpi=200)
 
 columnskw = ['kw_min_min', 'kw_max_min',  'kw_min_max', 'kw_max_max', 'kw_avg_max', 'kw_min_avg', 'kw_max_avg', 'kw_avg_avg', 'shares']
-sns.pairplot(data = sharedf, vars=columnskw, diag_kind="kde")
+sns.pairplot(data = sharedf, vars=columnskw, hue="target",diag_kind="kde")
 # %%
 plt.figure(figsize=(15,10))
-sns.scatterplot(y = "shares", x = "num_imgs", data=sharedf)
+sns.scatterplot(y = "shares", x = "num_imgs",hue="target", data=sharedf)
 plt.title("scatter plot between shares and number of images")
 
 # %%
 plt.figure(figsize=(15,10))
-sns.scatterplot(y = "shares", x = "num_videos", data=sharedf)
+sns.scatterplot(y = "shares", x = "num_videos",hue="target", data=sharedf)
 plt.title("scatter plot between shares and number of videos")
 
 # %%
@@ -313,4 +313,48 @@ plt.ylabel('Error Rate')
 plt.xlabel("K Value")
 # %%
 print(len(y_pred_test))
+# %%
+# Logistic Regression 
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score,confusion_matrix,classification_report
+from sklearn.metrics import plot_roc_curve
+log_model = LogisticRegression()
+log_model.fit(Scaled_Xtrain,y_train)
+y_pred = log_model.predict(Scaled_Xtest)
+accuracy_score(y_test,y_pred)
+cf_matrix = confusion_matrix(y_test,y_pred)
+sns.heatmap(cf_matrix, annot=True,cmap='Blues', fmt='g')
+print(classification_report(y_test,y_pred))
+plot_roc_curve(log_model,Scaled_Xtest,y_test)
+
+# %%
+#Decision Tree classification
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import plot_tree
+
+model = DecisionTreeClassifier(max_depth=5)
+model.fit(Scaled_Xtrain,y_train)
+base_pred = model.predict(Scaled_Xtest)
+from sklearn.metrics import confusion_matrix,classification_report
+cf_matrix = confusion_matrix(y_test,base_pred)
+sns.heatmap(cf_matrix, annot=True,cmap='Blues', fmt='g')
+print(classification_report(y_test,base_pred))
+print(model.feature_importances_)
+pd.DataFrame(index=X.columns,data=model.feature_importances_,columns=['Feature Importance'])
+plt.figure(figsize=(12,8),dpi=150)
+plot_tree(model,filled=True,feature_names=X.columns);
+# %%
+dff = pd.DataFrame(index=X.columns,data=model.feature_importances_,columns=['Feature Importance']).sort_values('Feature Importance', ascending=False)
+print(dff.head(7))
+# %%
+#Random Forest Classifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import confusion_matrix,classification_report,accuracy_score
+
+model = RandomForestClassifier(n_estimators=100,max_features='auto',random_state=101)
+model.fit(Scaled_Xtrain,y_train)
+preds = model.predict(Scaled_Xtest)
+cff = confusion_matrix(y_test,preds)
+sns.heatmap(cff, annot=True,cmap='Blues', fmt='g')
+print(classification_report(y_test,preds))
 # %%
