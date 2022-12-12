@@ -153,6 +153,12 @@ coefs = pd.DataFrame({
 }).sort_values(by='pvalue', ascending=False)
 print(coefs)
 
+#%% Running the stats model after removing non-significant predictors
+log_reg1 = glm(formula = "target ~ n_unique_tokens+num_hrefs+num_self_hrefs+num_imgs+num_videos+average_token_length+num_keywords+kw_min_min+kw_max_min+kw_max_max+kw_min_avg+kw_max_avg+self_reference_avg_sharess+global_subjectivity+min_positive_polarity+max_negative_polarity+title_sentiment_polarity+abs_title_subjectivity+C(Publish_DOW)+C(Data_Channel)", data = sharedf, family=sm.families.Binomial()).fit()
+print(log_reg1.summary())
+
+# No improvement in R sq value
+
 # %%
 ctoc = pd.DataFrame(coefs[coefs['pvalue']<0.05].index)
 print(ctoc)
