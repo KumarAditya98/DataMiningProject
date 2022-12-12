@@ -207,7 +207,22 @@ plt.legend()
 plt.ylabel('Error Rate')
 plt.xlabel("K Value")
 # %%
-print(len(y_pred_test))
+#ROC for KNN
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
+y_scores=knn_model.predict_proba(Scaled_Xtest)
+fpr,tpr,threshold =roc_curve(y_test,y_scores[:,1])
+roc_auc = auc(fpr, tpr)
+
+plt.plot(fpr, tpr,'b', label = 'AUC = %0.2f' % roc_auc)
+plt.legend(loc = 'lower right')
+plt.plot([0, 1], [0, 1],'r--')
+plt.xlim([0, 1])
+plt.ylim([0, 1])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.title('ROC Curve of kNN')
+plt.show()
 # %%
 # Logistic Regression 
 from sklearn.linear_model import LogisticRegression
@@ -228,11 +243,7 @@ importances = pd.DataFrame(data={
 })
 importances = importances.sort_values(by='Importance', ascending=False)
 print(importances.head(100))
-#%%
-plt.bar(x=importances['Attribute'], height=importances['Importance'], color='#087E8B')
-plt.title('Feature importances obtained from coefficients', size=20)
-plt.xticks(rotation='vertical')
-plt.show()
+
 # %%
 #Decision Tree classification
 from sklearn.tree import DecisionTreeClassifier
@@ -254,24 +265,97 @@ plot_tree(model,filled=True,feature_names=X.columns);
 # %%
 dff = pd.DataFrame(index=X.columns,data=model.feature_importances_,columns=['Feature Importance']).sort_values('Feature Importance', ascending=False)
 print(dff.head(17))
+
+#%%
+#ROC for decision tree
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
+y_scores=model.predict_proba(Scaled_Xtest)
+fpr,tpr,threshold =roc_curve(y_test,y_scores[:,1])
+roc_auc = auc(fpr, tpr)
+
+plt.plot(fpr, tpr,'b', label = 'AUC = %0.2f' % roc_auc)
+plt.legend(loc = 'lower right')
+plt.plot([0, 1], [0, 1],'r--')
+plt.xlim([0, 1])
+plt.ylim([0, 1])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.title('ROC Curve of Decision Tree')
+plt.show()
+
+#%%
+#PRUNING 
+#Pruned decision tree
+pruned_tree_1 = DecisionTreeClassifier(max_depth=2)
+pruned_tree_1.fit(Scaled_Xtrain,y_train)
+print(classification_report(y_test,base_pred))
+dff = pd.DataFrame(index=X.columns,data=pruned_tree_1.feature_importances_,columns=['Feature Importance']).sort_values('Feature Importance', ascending=False)
+print(dff.head(17))
+#%%
+pruned_tree_2 = DecisionTreeClassifier(max_leaf_nodes=2)
+pruned_tree_2.fit(Scaled_Xtrain,y_train)
+print(classification_report(y_test,base_pred))
+dff = pd.DataFrame(index=X.columns,data=pruned_tree_2.feature_importances_,columns=['Feature Importance']).sort_values('Feature Importance', ascending=False)
+print(dff.head(17))
 # %%
 #Random Forest Classifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix,classification_report,accuracy_score
 
-model = RandomForestClassifier(n_estimators=100,max_features='auto',random_state=101)
-model.fit(Scaled_Xtrain,y_train)
-preds = model.predict(Scaled_Xtest)
+modelforrc = RandomForestClassifier(n_estimators=100,max_features='auto',random_state=101)
+modelforrc.fit(Scaled_Xtrain,y_train)
+preds = modelforrc.predict(Scaled_Xtest)
+cff = confusion_matrix(y_test,preds)
+sns.heatmap(cff, annot=True,cmap='Blues', fmt='g')
+print(classification_report(y_test,preds))
+#%%
+#ROC for decision tree
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
+y_scores=modelforrc.predict_proba(Scaled_Xtest)
+fpr,tpr,threshold =roc_curve(y_test,y_scores[:,1])
+roc_auc = auc(fpr, tpr)
+
+plt.plot(fpr, tpr,'b', label = 'AUC = %0.2f' % roc_auc)
+plt.legend(loc = 'lower right')
+plt.plot([0, 1], [0, 1],'r--')
+plt.xlim([0, 1])
+plt.ylim([0, 1])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.title('ROC Curve of Random Forest')
+plt.show()
+
+
+#%%
+#%%
+from sklearn.svm import SVC
+from sklearn.metrics import confusion_matrix,classification_report
+svc = SVC(C= 1, class_weight='balanced',probability=True)
+svc.fit(Scaled_Xtrain,y_train)
+preds = svc.predict(Scaled_Xtest)
 cff = confusion_matrix(y_test,preds)
 sns.heatmap(cff, annot=True,cmap='Blues', fmt='g')
 print(classification_report(y_test,preds))
 
-
-
 #%%
-string = ""
-for i in range(len(sharedf.columns)):
-    string = string + sharedf.columns[i] + "+"
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
+y_scores=svc.predict_proba(Scaled_Xtest)
+fpr,tpr,threshold =roc_curve(y_test,y_scores[:,1])
+roc_auc = auc(fpr, tpr)
+
+plt.plot(fpr, tpr,'b', label = 'AUC = %0.2f' % roc_auc)
+plt.legend(loc = 'lower right')
+plt.plot([0, 1], [0, 1],'r--')
+plt.xlim([0, 1])
+plt.ylim([0, 1])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.title('ROC Curve of svc')
+plt.show()
+
 
 
 ##

@@ -221,43 +221,12 @@ X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.33, rando
 scaler = StandardScaler()
 Scaled_Xtrain = scaler.fit_transform(X_train)
 Scaled_Xtest= scaler.transform(X_test)
-model = DecisionTreeRegressor(random_state=0, max_depth= 5)
-model.fit(Scaled_Xtrain, y_train)
-predicted_values = model.predict(Scaled_Xtest)
 
 
-plt.figure(figsize=(20,15), dpi=200)
-plot_tree(model, feature_names=X.columns, filled=True);
-#%%
-print(f"The mean value of the shares is {sharedf['shares'].mean()}")
-features = model.feature_importances_
-pd.DataFrame(index=X.columns, data=features, columns=['Feature Importance']).sort_values('Feature Importance', ascending=False)
-print(mean_absolute_error(y_test, predicted_values))
-print(np.sqrt(mean_squared_error(y_test, predicted_values)))
+
+
 
 #%%
-pd.set_option('display.float_format', lambda x: '%.3f' % x)
-
-model_2 = DecisionTreeRegressor(random_state=0, max_depth=3)
-model_2.fit(Scaled_Xtrain, y_train)
-predicted_values1 = model_2.predict(Scaled_Xtest)
-features1 = model_2.feature_importances_
-pd.DataFrame(index=X.columns, data= features1, columns=['Feature Importance']).sort_values('Feature Importance', ascending=False)
-print(mean_absolute_error(y_test, predicted_values1))
-print(np.sqrt(mean_squared_error(y_test, predicted_values1)))
-plot_tree(model_2, feature_names= X.columns, filled=True)
-#%%
-X_test.head()
-# %%
-#LINEAR REGRESSION
-from sklearn.linear_model import LinearRegression
-model_lr = LinearRegression()
-model_lr.fit(Scaled_Xtrain, y_train)
-predictons = model_lr.predict(Scaled_Xtest)
-#%%
-print(mean_absolute_error(y_test, predictons))
-print(np.sqrt(mean_squared_error(y_test, predictons)))
-print(min(sharedf['shares']))
 
 # %%
 print(sharedf.columns)
@@ -275,8 +244,8 @@ print(sharedf['target'])
 pd.set_option('display.float_format', lambda x: '%.3f' % x)
 
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import classification_report,confusion_matrix,accuracy_score
-
+from sklearn.metrics import classification_report,confusion_matrix,accuracy_score, plot_confusion_matrix
+#%%
 X = pd.get_dummies(sharedf.drop(['shares','target'],axis=1),drop_first=True)
 y = sharedf['target']
 X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.33, random_state=42)
@@ -288,10 +257,17 @@ knn_model.fit(Scaled_Xtrain,y_train)
 y_pred = knn_model.predict(Scaled_Xtest)
 accuracy_score(y_test,y_pred)
 cf_matrix = confusion_matrix(y_test,y_pred)
-
+#%%
+plot_confusion_matrix(knn_model, Scaled_Xtest, y_test)
+#%%
 print(classification_report(y_test,y_pred))
 import seaborn as sns
 sns.heatmap(cf_matrix, annot=True,cmap='Blues', fmt='g')
+
+# By using the KNN algorithm, we can observe that at k = 14 the accuracy of the model is 62%.
+# 
+# From the heat map, we can observe that 1724 rows which must be classified as the 0, the algorithm classified as 1.
+#Moreover 3075 rows, which the algorithm should classify as 1, the algorithm predicted as 0.
 # %%
 #Choosing K value
 test_error_rates = []
@@ -311,8 +287,29 @@ plt.plot(range(1,30),test_error_rates,label='Test Error')
 plt.legend()
 plt.ylabel('Error Rate')
 plt.xlabel("K Value")
+# We can observe from the plot that the optium value for the k is 14, and increasing the 
+# k values furthermore will result in the decrease of the error percentage from 0.38 to 0.37.
+#%%
+#ROC for KNN
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
+y_scores=knn_model.predict_proba(Scaled_Xtest)
+fpr,tpr,threshold =roc_curve(y_test,y_scores[:,1])
+roc_auc = auc(fpr, tpr)
+
+plt.plot(fpr, tpr,'b', label = 'AUC = %0.2f' % roc_auc)
+plt.legend(loc = 'lower right')
+plt.plot([0, 1], [0, 1],'r--')
+plt.xlim([0, 1])
+plt.ylim([0, 1])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.title('ROC Curve of kNN')
+plt.show()
+
 # %%
 print(len(y_pred_test))
+
 # %%
 # Logistic Regression 
 from sklearn.linear_model import LogisticRegression
@@ -346,15 +343,115 @@ plot_tree(model,filled=True,feature_names=X.columns);
 # %%
 dff = pd.DataFrame(index=X.columns,data=model.feature_importances_,columns=['Feature Importance']).sort_values('Feature Importance', ascending=False)
 print(dff.head(7))
+#%%
+#ROC for decision tree
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
+y_scores=model.predict_proba(Scaled_Xtest)
+fpr,tpr,threshold =roc_curve(y_test,y_scores[:,1])
+roc_auc = auc(fpr, tpr)
+
+plt.plot(fpr, tpr,'b', label = 'AUC = %0.2f' % roc_auc)
+plt.legend(loc = 'lower right')
+plt.plot([0, 1], [0, 1],'r--')
+plt.xlim([0, 1])
+plt.ylim([0, 1])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.title('ROC Curve of Decision Tree')
+plt.show()
+
+
+#%%
+#Pruned decision tree
+pruned_tree_1 = DecisionTreeClassifier(max_depth=2)
+pruned_tree_1.fit(Scaled_Xtrain,y_train)
+print(classification_report(y_test,base_pred))
+dff = pd.DataFrame(index=X.columns,data=pruned_tree_1.feature_importances_,columns=['Feature Importance']).sort_values('Feature Importance', ascending=False)
+print(dff.head(17))
+
+#%%
+pruned_tree_2 = DecisionTreeClassifier(max_leaf_nodes=2)
+pruned_tree_2.fit(Scaled_Xtrain,y_train)
+print(classification_report(y_test,base_pred))
+
 # %%
 #Random Forest Classifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix,classification_report,accuracy_score
 
-model = RandomForestClassifier(n_estimators=100,max_features='auto',random_state=101)
-model.fit(Scaled_Xtrain,y_train)
-preds = model.predict(Scaled_Xtest)
+modelforrc = RandomForestClassifier(n_estimators=100,max_features='auto',random_state=101)
+modelforrc.fit(Scaled_Xtrain,y_train)
+preds = modelforrc.predict(Scaled_Xtest)
 cff = confusion_matrix(y_test,preds)
 sns.heatmap(cff, annot=True,cmap='Blues', fmt='g')
 print(classification_report(y_test,preds))
+#%%
+
+# %%
+#ROC for decision tree
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
+y_scores=modelforrc.predict_proba(Scaled_Xtest)
+fpr,tpr,threshold =roc_curve(y_test,y_scores[:,1])
+roc_auc = auc(fpr, tpr)
+
+plt.plot(fpr, tpr,'b', label = 'AUC = %0.2f' % roc_auc)
+plt.legend(loc = 'lower right')
+plt.plot([0, 1], [0, 1],'r--')
+plt.xlim([0, 1])
+plt.ylim([0, 1])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.title('ROC Curve of Random Forest')
+plt.show()
+
+
+
+
+
+
+#%%
+from sklearn.svm import SVC
+from sklearn.metrics import confusion_matrix,classification_report
+svc = SVC(C= 1, class_weight='balanced',probability=True)
+svc.fit(Scaled_Xtrain,y_train)
+preds = svc.predict(Scaled_Xtest)
+cff = confusion_matrix(y_test,preds)
+sns.heatmap(cff, annot=True,cmap='Blues', fmt='g')
+print(classification_report(y_test,preds))
+
+
+
+
+#%%
+from sklearn.svm import SVC
+from sklearn.metrics import confusion_matrix,classification_report
+svc = SVC(C= 0.01, class_weight='balanced', probability=True)
+svc.fit(Scaled_Xtrain,y_train)
+preds = svc.predict(Scaled_Xtest)
+cff = confusion_matrix(y_test,preds)
+sns.heatmap(cff, annot=True,cmap='Blues', fmt='g')
+print(classification_report(y_test,preds))
+
+
+#%%
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
+y_scores=svc.predict_proba(Scaled_Xtest)
+fpr,tpr,threshold =roc_curve(y_test,y_scores[:,1])
+roc_auc = auc(fpr, tpr)
+
+plt.plot(fpr, tpr,'b', label = 'AUC = %0.2f' % roc_auc)
+plt.legend(loc = 'lower right')
+plt.plot([0, 1], [0, 1],'r--')
+plt.xlim([0, 1])
+plt.ylim([0, 1])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.title('ROC Curve of svc')
+plt.show()
+
+
+
 # %%
