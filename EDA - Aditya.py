@@ -275,7 +275,7 @@ plt.show()
 
 # We observe a trend. Near the weekends, the percentage of popular articles increases and peaks on Saturday, however, it gradually decreases then and is the lowest during mid week on Wednesday.
 #%%
-# Q4. Evaluating whether Day of Week has any effect on popularity
+# Q4. Evaluating whether Data channel has any effect on popularity
 sns.countplot(y=dfviz.Data_Channel,hue=dfviz.target1)
 plt.legend(title='Key')
 plt.xlabel('Count')
