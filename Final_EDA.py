@@ -64,7 +64,7 @@ OnlineNewsdf.head()
 # %%
 Threshold = OnlineNewsdf['shares'].median()
 #print(Threshold)
-OnlineNewsdf['popularity'] = np.where(OnlineNewsdf.shares>Threshold,1,0)
+OnlineNewsdf['popularity'] = np.where(OnlineNewsdf.shares>Threshold,'Popular','Unpopular')
 #print(OnlineNewsdf.popularity.value_counts())
 
 
@@ -82,8 +82,7 @@ sns.relplot(
     data = OnlineNewsdf,
     x = "n_tokens_title", y = "shares",
     hue = "popularity", kind = "line", palette = palette,
-    height = 5, aspect = .75, facet_kws = dict(sharex = False),
-)
+    height = 5, aspect = .75, facet_kws = dict(sharex = False))
 
 
 
@@ -113,7 +112,7 @@ sns.scatterplot(
 plt.title('Analysing Popularity based on Shares')
 plt.xlabel('No of Tokens Content')
 plt.ylabel('Shares')
-plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0,title="Key")
 plt.show() 
  
 

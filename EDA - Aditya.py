@@ -238,9 +238,60 @@ print(dfviz.n_tokens_title.value_counts())
 
 # Now lets see their relationship with each other and then with number of shares.
 
+# Relationship with shares is in Sasanks file.
 
+#%%
+# Lets see if there is a relationship between these two variables itself.
+
+sns.set(style='darkgrid')
+bins = np.linspace(0,20,21)
+plt.scatter(x=dfviz.n_tokens_title,y=dfviz.n_tokens_content,color='b',alpha=0.5)
+plt.xticks(bins)
+plt.xlabel('No. of Words in Title')
+plt.ylabel('No. of Words in Content')
+plt.show()
+
+# It seems like, except for a few outliers, Number of words in the content peak when the Number of words in the title are between 8-14 and they fall off gradually as it increases or decreases from this range. This is interesting.
  
+#%%
+# Q3. Evaluating whether Day of Week has any effect on popularity
+sns.set(style='white')
+dfviz['target1']=np.where(dfviz.target==1,'Popular','Unpopular')
+sns.countplot(y=dfviz.Publish_DOW,hue=dfviz.target1)
+plt.legend(title='Key')
+plt.xlabel('Count')
+plt.ylabel('Publish Day of the Week')
+plt.show()
 
+# This plot gives us highly useful insight. An article published over the weekend is more likely to be popular as opposed to an article that is published over the weekday. This makes intuitive sense since people have more time to read articles over the weekend as opposed to weekday. To showcase this, i'll plot the percentage chance of popularity on all weekdays according to our data.
+#%%
+new = dfviz.groupby('Publish_DOW',as_index=False).aggregate({"url":"count","target":"sum"})
+new['Percent'] = (new.target/new.url)*100
+ord = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+sns.barplot(y=new.Publish_DOW,x=new.Percent,order=ord,color='b')
+plt.xlabel('Percentage of Popular Articles')
+plt.ylabel('Publish Day of the Week')
+plt.show()
 
+# We observe a trend. Near the weekends, the percentage of popular articles increases and peaks on Saturday, however, it gradually decreases then and is the lowest during mid week on Wednesday.
+#%%
+# Q4. Evaluating whether Day of Week has any effect on popularity
+sns.countplot(y=dfviz.Data_Channel,hue=dfviz.target1)
+plt.legend(title='Key')
+plt.xlabel('Count')
+plt.ylabel('Data Channel')
+plt.show()
 
-# %%
+# We can observe that in category of technology and social media, the proportion of popular news is much larger than unpopular ones, and in category of world and entertainment, the proportion of unpopular news is larger than popular ones. This reflects that the readers of "Mashable.com" prefer the channel of technology and social media over the channel of world and entertainment.
+
+# We can plot the percentage of this like before to see comparison between popular and unpopular
+
+#%%
+new1 = dfviz.groupby('Data_Channel',as_index=False).aggregate({"url":"count","target":"sum"})
+new1['Percent'] = (new1.target/new1.url)*100
+sns.barplot(y=new1.Data_Channel,x=new1.Percent,color='r')
+plt.xlabel('Percentage of Popular Articles')
+plt.ylabel('Data Channel')
+plt.show()
+
+#%%
