@@ -125,9 +125,17 @@ for column in cols:
     print(llimit)
     print(ulimit)
     print(IQR)
+    
+#%%
+# Looking at the distribution of all numerical variables to see if log transformation can be applied to right tailed ones.
+sharedf1 = sharedf[cols]
 
+sharedf1.hist(figsize=(20,20))
+plt.show()
 
+# Choosing not to apply log transformations
 
+#%%
 ## Modeling
 
 #Logistic Regression using stats model

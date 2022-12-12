@@ -295,3 +295,27 @@ plt.ylabel('Data Channel')
 plt.show()
 
 #%%
+# Having a look at title sentiment vs number of shares
+fig=plt.figure(figsize=(10,8), dpi= 80, facecolor='w', edgecolor='k')
+ax=fig.add_subplot(111)
+plt.scatter(dfviz['title_sentiment_polarity'],dfviz['shares'])
+plt.xlabel("Title sentiment polarity")
+plt.ylabel("Shares")
+plt.suptitle('Title sentiment polarity vs Shares')
+fig.savefig("title_sentiment_polarity.png")
+plt.show()
+# Mostly the articles have titles which are not too positive or negative. It lies with in the range of -0.5 to 0.5. However highest concentration can be seen in the 0 axis i.e. high no. of articles are neutral in nature with higher number of shares.
+
+# %%
+# Now looking at the Global subjectivity of the text w.r.t shares
+fig=plt.figure(figsize=(10,8), dpi= 80, facecolor='w', edgecolor='k')
+ax=fig.add_subplot(111)
+plt.scatter(dfviz['global_subjectivity'],dfviz['shares'])
+plt.xlabel('global_subjectivity')
+plt.ylabel('ShareS')
+plt.suptitle('Distribution of global_subjectivity')
+plt.show()
+fig.savefig("global_subjectivity.png")
+# Maximum of global_subjectivity lies between 0.3 to 0.7. Hence, we conclude that most of the articles with medium global_subjectivity have maximum shares, that is the articles contain a good blend of personal opinions and factual information.
+
+# %%
