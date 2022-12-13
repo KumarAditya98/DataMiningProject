@@ -178,7 +178,7 @@ X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.30, rando
 scaler = StandardScaler()
 Scaled_Xtrain = scaler.fit_transform(X_train)
 Scaled_Xtest= scaler.transform(X_test)
-knn_model = KNeighborsClassifier(n_neighbors=14)
+knn_model = KNeighborsClassifier(n_neighbors=19)
 knn_model.fit(Scaled_Xtrain,y_train)
 y_pred = knn_model.predict(Scaled_Xtest)
 accuracy_score(y_test,y_pred)
