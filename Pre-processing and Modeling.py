@@ -253,7 +253,8 @@ print(importances.head(100))
 #When the dependent variable is dichotomous, logistic regression is the proper regression strategy to use (binary). While implementing the logistic regression model, the accuracy of the model is 65%.
 #From the confusion matrix, we get 2316 as a false negative and 2105 as a false positive.
 #The AUC for the logistic model is 0.7, from the AUC we can say that 70% chance that the model will be able to distinguish between positive class and negative class, and the logistic model is said to be a considerable model. 
-# %%
+
+#%%
 #Decision Tree classification
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import plot_tree
