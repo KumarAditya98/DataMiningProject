@@ -87,7 +87,7 @@ dfviz = dfviz[dfviz['timedelta']>21]
 
 # Will be saving back this file as the dataset. Doing the sae for dataset_viz file.
 # df.to_csv('Dataset/OnlineNewsPopularity.csv',index=False)
-# For convenience sake, I have just rerun my initial dataset file to get the target variable in the actual dataset as well.
+# For convenience sake, I have just rerun my initial dataset manipulation file to get the target variable in the actual dataset as well.
 
 #%%
 # Now onto more EDA!!
