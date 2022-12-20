@@ -324,13 +324,31 @@ cf_matrix = confusion_matrix(y_test,y_pred)
 sns.heatmap(cf_matrix, annot=True,cmap='Blues', fmt='g')
 print(classification_report(y_test,y_pred))
 plot_roc_curve(log_model,Scaled_Xtest,y_test)
+#%%
+#ROC for lm
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
+y_scores=log_model.predict_proba(Scaled_Xtest)
+fpr,tpr,threshold =roc_curve(y_test,y_scores[:,1])
+roc_auc = auc(fpr, tpr)
+
+plt.plot(fpr, tpr,'b', label = 'AUC = %0.2f' % roc_auc)
+plt.legend(loc = 'lower right')
+plt.plot([0, 1], [0, 1],'r--')
+plt.xlim([0, 1])
+plt.ylim([0, 1])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.title('ROC Curve of logistic regression')
+plt.show()
+
 
 # %%
 #Decision Tree classification
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import plot_tree
 
-model = DecisionTreeClassifier(max_depth=5)
+model = DecisionTreeClassifier(max_depth= 5)
 model.fit(Scaled_Xtrain,y_train)
 base_pred = model.predict(Scaled_Xtest)
 from sklearn.metrics import confusion_matrix,classification_report
@@ -344,6 +362,17 @@ plot_tree(model,filled=True,feature_names=X.columns);
 # %%
 dff = pd.DataFrame(index=X.columns,data=model.feature_importances_,columns=['Feature Importance']).sort_values('Feature Importance', ascending=False)
 print(dff.head(7))
+#%%
+for depth in range(2, 25):
+ 
+    model_dc = DecisionTreeClassifier(max_depth=depth, random_state=101)
+    model_dc.fit(Scaled_Xtrain,y_train)
+ 
+    preds = model_dc.predict(Scaled_Xtest)
+ 
+    print(f'{depth} accuracy score: {accuracy_score(y_test, preds)}')
+
+
 #%%
 #ROC for decision tree
 from sklearn.metrics import roc_curve
@@ -365,17 +394,24 @@ plt.show()
 
 #%%
 #Pruned decision tree
-pruned_tree_1 = DecisionTreeClassifier(max_depth=2)
+pruned_tree_1 = DecisionTreeClassifier(max_depth=2, random_state=101)
 pruned_tree_1.fit(Scaled_Xtrain,y_train)
-print(classification_report(y_test,base_pred))
+preds = pruned_tree_1.predict(Scaled_Xtest)
+print(classification_report(y_test,preds))
 dff = pd.DataFrame(index=X.columns,data=pruned_tree_1.feature_importances_,columns=['Feature Importance']).sort_values('Feature Importance', ascending=False)
 print(dff.head(17))
+#%%
+plt.figure(figsize=(12,8),dpi=150)
+plot_tree(pruned_tree_1,filled=True,feature_names=X.columns);
 
 #%%
 pruned_tree_2 = DecisionTreeClassifier(max_leaf_nodes=2)
 pruned_tree_2.fit(Scaled_Xtrain,y_train)
+preds = pruned_tree_2.predict(Scaled_Xtest)
 print(classification_report(y_test,base_pred))
-
+#%%
+plt.figure(figsize=(12,8),dpi=150)
+plot_tree(pruned_tree_2,filled=True,feature_names=X.columns);
 # %%
 #Random Forest Classifier
 from sklearn.ensemble import RandomForestClassifier
@@ -390,7 +426,7 @@ print(classification_report(y_test,preds))
 #%%
 
 # %%
-#ROC for decision tree
+#ROC for random forest
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
 y_scores=modelforrc.predict_proba(Scaled_Xtest)

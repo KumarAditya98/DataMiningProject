@@ -206,6 +206,12 @@ plt.plot(range(1,30),test_error_rates,label='Test Error')
 plt.legend()
 plt.ylabel('Error Rate')
 plt.xlabel("K Value")
+#%%[markdown]
+#The k-nearest neighbors method, generally known as KNN or k-NN, is a non-parametric, supervised learning classifier that utilizes proximity to classify or predict the grouping of a single data point.
+#For the KNN algorithm, we have plotted the error rate vs accuracy plot, based on the plot we can identify that the error rate was low when the k value is at 17. So, by looking at that plot we found that the optimum value of the k is 17.
+#So, for the KNN algorithm, we choose the number of neighbors as 17 and the accuracy of the model with this K value was 63%. 
+#From the confusion matrix, we can interpret that 2714 are classified as false negative and 2001 are classified as false positive.
+
 # %%
 #ROC for KNN
 from sklearn.metrics import roc_curve
@@ -243,7 +249,10 @@ importances = pd.DataFrame(data={
 })
 importances = importances.sort_values(by='Importance', ascending=False)
 print(importances.head(100))
-
+#%%[markdown]
+#When the dependent variable is dichotomous, logistic regression is the proper regression strategy to use (binary). While implementing the logistic regression model, the accuracy of the model is 65%.
+#From the confusion matrix, we get 2316 as a false negative and 2105 as a false positive.
+#The AUC for the logistic model is 0.7, from the AUC we can say that 70% chance that the model will be able to distinguish between positive class and negative class, and the logistic model is said to be a considerable model. 
 # %%
 #Decision Tree classification
 from sklearn.tree import DecisionTreeClassifier
@@ -283,6 +292,9 @@ plt.ylabel('True Positive Rate')
 plt.xlabel('False Positive Rate')
 plt.title('ROC Curve of Decision Tree')
 plt.show()
+#%%
+#We have implemented the decision tree for the given data set with a maximum depth of 5 first, we considered the decision tree with the default parameters. The accuracy of the model is 62%. So, then we adjusted some of the parameters in the decision tree function and tried different depths. We considered the decision tree with maximum depth at 5 is considered as optimum with an accuracy of 64%. 
+#  From the confusion matrix, we can analyze that 2528 rows are classified as false negative and 2048 are classified as false positive.
 
 #%%
 #PRUNING 
@@ -327,7 +339,10 @@ plt.xlabel('False Positive Rate')
 plt.title('ROC Curve of Random Forest')
 plt.show()
 
-
+#%%[markdown]
+#During training, random forests (also known as random choice forests) generate a huge number of decision trees to use as an ensemble learning approach for classification, regression, and other problems. The output of a random forest is the class selected by the vast majority of trees, which is useful for solving classification issues. When a regression task is given, the average prediction of the individual trees is given back. Decision trees may overfit their training data, although random decision forests mitigate this problem.
+#  Random forests are more effective than decision trees in most cases. So, for the random forest, we just used the default parameters, and the accuracy of the model is 66%. Moreover, we tried random forest with different parameters, but the accuracy of the model is not increased. 
+#From the confusion matrix, we can identify that 2222 are classified as false negative and 2037 are classified as false positive.
 #%%
 #%%
 from sklearn.svm import SVC
