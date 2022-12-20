@@ -293,6 +293,15 @@ plt.xlabel('False Positive Rate')
 plt.title('ROC Curve of Decision Tree')
 plt.show()
 #%%
+for depth in range(2, 25):
+ 
+    model_dc = DecisionTreeClassifier(max_depth=depth, random_state=101)
+    model_dc.fit(Scaled_Xtrain,y_train)
+ 
+    preds = model_dc.predict(Scaled_Xtest)
+ 
+    print(f'{depth} accuracy score: {accuracy_score(y_test, preds)}')
+#%%
 #We have implemented the decision tree for the given data set with a maximum depth of 5 first, we considered the decision tree with the default parameters. The accuracy of the model is 62%. So, then we adjusted some of the parameters in the decision tree function and tried different depths. We considered the decision tree with maximum depth at 5 is considered as optimum with an accuracy of 64%. 
 #  From the confusion matrix, we can analyze that 2528 rows are classified as false negative and 2048 are classified as false positive.
 
