@@ -57,14 +57,13 @@ heatmap = sns.heatmap(sharedf.corr(), vmin=-1, vmax=1, annot=True, cmap='BrBG')
 heatmap.set_title('Correlation Heatmap', fontdict={'fontsize':18}, pad=12);
 
 
-# From the heat map(correlation plot) we can observe that n_non_stop_unique_tokens, n_non_stop_words, kw_avg_min has the high correlation
-
 # Choosing 0.7 as the threshold, any correlation value greater than this will be removed.
 #%%
 sharedf = sharedf.drop('url',axis=1)
 
 #%%
-#From the collerations we can observe that n_non_stop_words, n_non_stop_unique_tokens, kw_avg_min has high correlations, we are dropping these columns
+#From the collerations we can observe that n_non_stop_words, n_non_stop_unique_tokens, kw_avg_min has high correlations, we are dropping these columns. Along with these, the following columns are also dropped because of high correlation.
+# If n columns were highly correlated, only n-1 columns are dropped 
 
 sharedf= sharedf.drop(["n_non_stop_unique_tokens","n_non_stop_words","kw_avg_min",'self_reference_max_shares', 'self_reference_min_shares','kw_avg_avg', 'LDA_00','LDA_02', 'LDA_04', 'is_weekend', 'rate_positive_words', 'rate_negative_words', 'min_negative_polarity',"title_subjectivity" ,'timedelta'],axis=1)
 
@@ -72,7 +71,7 @@ sharedf= sharedf.drop(["n_non_stop_unique_tokens","n_non_stop_words","kw_avg_min
 print(sharedf.head())
 
 #%%
-# Outlier Handling
+# Outlier Handling, to clean the dataset.
 # %%
 num_cols = sharedf.select_dtypes(['int64','float64']).columns
 
@@ -101,6 +100,8 @@ cols = list(sharedf.columns)
 l = ['data_channel_is_lifestyle','data_channel_is_entertainment','data_channel_is_bus','data_channel_is_socmed','data_channel_is_tech','data_channel_is_world','weekday_is_monday','weekday_is_tuesday','weekday_is_wednesday','weekday_is_thursday','weekday_is_friday','weekday_is_saturday','weekday_is_sunday','LDA_01','LDA_03','shares','target','Data_Channel','Publish_DOW']
 for i in l:
     cols.remove(i)
+
+# This removal operation is performed to retain only float type of values whose outliers are to be treated. 
 #%%
 for i in cols:
     
@@ -133,18 +134,19 @@ sharedf1 = sharedf[cols]
 sharedf1.hist(figsize=(20,20))
 plt.show()
 
-# Choosing not to apply log transformations
+# Choosing not to apply log transformations. There are some negative features in the dataset. Standard encoder seems to work universally and preserves the distribution of the data whereas log transformations work only in few cases. 
 
 #%%
 ## Modeling
 
-#Logistic Regression using stats model
+# First we build a Logistic Regression using stats model using all the features available to us
 import statsmodels.api as sm
 from statsmodels.formula.api import glm
 log_reg = glm(formula = "target ~ n_tokens_title+n_tokens_content+n_unique_tokens+num_hrefs+num_self_hrefs+num_imgs+num_videos+average_token_length+num_keywords+kw_min_min+kw_max_min+kw_min_max+kw_max_max+kw_avg_max+kw_min_avg+kw_max_avg+self_reference_avg_sharess+global_subjectivity+global_sentiment_polarity+global_rate_positive_words+global_rate_negative_words+avg_positive_polarity+min_positive_polarity+max_positive_polarity+avg_negative_polarity+max_negative_polarity+title_sentiment_polarity+abs_title_subjectivity+abs_title_sentiment_polarity+C(Publish_DOW)+C(Data_Channel)", data = sharedf, family=sm.families.Binomial()).fit()
 print(log_reg.summary())
 
-# %%
+#%%
+# Sorting the variables by their p-values
 coefs = pd.DataFrame({
     'coef': log_reg.params.values,
     'odds ratio': np.exp(log_reg.params.values),
@@ -157,12 +159,18 @@ print(coefs)
 log_reg1 = glm(formula = "target ~ n_unique_tokens+num_hrefs+num_self_hrefs+num_imgs+num_videos+average_token_length+num_keywords+kw_min_min+kw_max_min+kw_max_max+kw_min_avg+kw_max_avg+self_reference_avg_sharess+global_subjectivity+min_positive_polarity+max_negative_polarity+title_sentiment_polarity+abs_title_subjectivity+C(Publish_DOW)+C(Data_Channel)", data = sharedf, family=sm.families.Binomial()).fit()
 print(log_reg1.summary())
 
-# No improvement in R sq value
+# No improvement in R-squared or adjusted R-squared value 
+# Since variables were removed, we didn't expect to see this improvement either.
+
+# However, this tells us that we can build our models using lesser number of features as well, and we'll explain the same variability in response.
+
+# However, since with p-values, we can only fail to reject the null hypothesis. This tells us that we don't have enough evidence in our dataset. 
+
+# For the rest of the models, we'll include all the features that are avaialble to us after removing the correlated once.  
 
 # %%
 ctoc = pd.DataFrame(coefs[coefs['pvalue']<0.05].index)
 print(ctoc)
-
 
 
 # %%
@@ -206,8 +214,11 @@ plt.plot(range(1,30),test_error_rates,label='Test Error')
 plt.legend()
 plt.ylabel('Error Rate')
 plt.xlabel("K Value")
+
+# We picked the ideal K value according to this error graph (17) and then re-ran the above code. Earlier K was an arbitrary value.
+
 # %%
-#ROC for KNN
+# Plotting the ROC for KNN
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
 y_scores=knn_model.predict_proba(Scaled_Xtest)
@@ -223,8 +234,9 @@ plt.ylabel('True Positive Rate')
 plt.xlabel('False Positive Rate')
 plt.title('ROC Curve of kNN')
 plt.show()
+
 # %%
-# Logistic Regression 
+# Running Logistic Regression again from the Sklearn library now. 
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score,confusion_matrix,classification_report
 from sklearn.metrics import plot_roc_curve
@@ -244,8 +256,10 @@ importances = pd.DataFrame(data={
 importances = importances.sort_values(by='Importance', ascending=False)
 print(importances.head(100))
 
+# Since our X_train and X_test are standard scaled, looking at this we'll identify which are the important features in predicting our target.
+
 # %%
-#Decision Tree classification
+# Running the Decision Tree classificatier now
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import plot_tree
 
@@ -261,7 +275,7 @@ pd.DataFrame(index=X.columns,data=model.feature_importances_,columns=['Feature I
 plt.figure(figsize=(12,8),dpi=200)
 #%%
 plt.figure(figsize = (20,20), dpi = 200)
-plot_tree(model,filled=True,feature_names=X.columns);
+plot_tree(model,filled=True,feature_names=X.columns)
 # %%
 dff = pd.DataFrame(index=X.columns,data=model.feature_importances_,columns=['Feature Importance']).sort_values('Feature Importance', ascending=False)
 print(dff.head(17))
