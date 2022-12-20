@@ -310,6 +310,15 @@ pruned_tree_2.fit(Scaled_Xtrain,y_train)
 print(classification_report(y_test,base_pred))
 dff = pd.DataFrame(index=X.columns,data=pruned_tree_2.feature_importances_,columns=['Feature Importance']).sort_values('Feature Importance', ascending=False)
 print(dff.head(17))
+#%%
+for depth in range(2, 25):
+ 
+    model_dc = DecisionTreeClassifier(max_depth=depth, random_state=101)
+    model_dc.fit(Scaled_Xtrain,y_train)
+ 
+    preds = model_dc.predict(Scaled_Xtest)
+ 
+    print(f'{depth} accuracy score: {accuracy_score(y_test, preds)}')
 # %%
 #Random Forest Classifier
 from sklearn.ensemble import RandomForestClassifier
