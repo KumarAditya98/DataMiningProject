@@ -57,14 +57,13 @@ heatmap = sns.heatmap(sharedf.corr(), vmin=-1, vmax=1, annot=True, cmap='BrBG')
 heatmap.set_title('Correlation Heatmap', fontdict={'fontsize':18}, pad=12);
 
 
-# From the heat map(correlation plot) we can observe that n_non_stop_unique_tokens, n_non_stop_words, kw_avg_min has the high correlation
-
 # Choosing 0.7 as the threshold, any correlation value greater than this will be removed.
 #%%
 sharedf = sharedf.drop('url',axis=1)
 
 #%%
-#From the collerations we can observe that n_non_stop_words, n_non_stop_unique_tokens, kw_avg_min has high correlations, we are dropping these columns
+##From the collerations we can observe that n_non_stop_words, n_non_stop_unique_tokens, kw_avg_min has high correlations, we are dropping these columns. Along with these, the following columns are also dropped because of high correlation.
+# If n columns were highly correlated, only n-1 columns are dropped 
 
 sharedf= sharedf.drop(["n_non_stop_unique_tokens","n_non_stop_words","kw_avg_min",'self_reference_max_shares', 'self_reference_min_shares','kw_avg_avg', 'LDA_00','LDA_02', 'LDA_04', 'is_weekend', 'rate_positive_words', 'rate_negative_words', 'min_negative_polarity',"title_subjectivity" ,'timedelta'],axis=1)
 
@@ -72,7 +71,7 @@ sharedf= sharedf.drop(["n_non_stop_unique_tokens","n_non_stop_words","kw_avg_min
 print(sharedf.head())
 
 #%%
-# Outlier Handling
+# Outlier Handling, to clean the dataset.
 # %%
 num_cols = sharedf.select_dtypes(['int64','float64']).columns
 
@@ -101,6 +100,8 @@ cols = list(sharedf.columns)
 l = ['data_channel_is_lifestyle','data_channel_is_entertainment','data_channel_is_bus','data_channel_is_socmed','data_channel_is_tech','data_channel_is_world','weekday_is_monday','weekday_is_tuesday','weekday_is_wednesday','weekday_is_thursday','weekday_is_friday','weekday_is_saturday','weekday_is_sunday','LDA_01','LDA_03','shares','target','Data_Channel','Publish_DOW']
 for i in l:
     cols.remove(i)
+
+# This removal operation is performed to retain only float type of values whose outliers are to be treated. 
 #%%
 for i in cols:
     
@@ -133,18 +134,19 @@ sharedf1 = sharedf[cols]
 sharedf1.hist(figsize=(20,20))
 plt.show()
 
-# Choosing not to apply log transformations
+# Choosing not to apply log transformations. There are some negative features in the dataset. Standard encoder seems to work universally and preserves the distribution of the data whereas log transformations work only in few cases. 
 
 #%%
 ## Modeling
 
-#Logistic Regression using stats model
+#First we build a Logistic Regression using stats model using all the features available to us
 import statsmodels.api as sm
 from statsmodels.formula.api import glm
 log_reg = glm(formula = "target ~ n_tokens_title+n_tokens_content+n_unique_tokens+num_hrefs+num_self_hrefs+num_imgs+num_videos+average_token_length+num_keywords+kw_min_min+kw_max_min+kw_min_max+kw_max_max+kw_avg_max+kw_min_avg+kw_max_avg+self_reference_avg_sharess+global_subjectivity+global_sentiment_polarity+global_rate_positive_words+global_rate_negative_words+avg_positive_polarity+min_positive_polarity+max_positive_polarity+avg_negative_polarity+max_negative_polarity+title_sentiment_polarity+abs_title_subjectivity+abs_title_sentiment_polarity+C(Publish_DOW)+C(Data_Channel)", data = sharedf, family=sm.families.Binomial()).fit()
 print(log_reg.summary())
 
 # %%
+# Sorting the variables by their p-values
 coefs = pd.DataFrame({
     'coef': log_reg.params.values,
     'odds ratio': np.exp(log_reg.params.values),
@@ -157,7 +159,14 @@ print(coefs)
 log_reg1 = glm(formula = "target ~ n_unique_tokens+num_hrefs+num_self_hrefs+num_imgs+num_videos+average_token_length+num_keywords+kw_min_min+kw_max_min+kw_max_max+kw_min_avg+kw_max_avg+self_reference_avg_sharess+global_subjectivity+min_positive_polarity+max_negative_polarity+title_sentiment_polarity+abs_title_subjectivity+C(Publish_DOW)+C(Data_Channel)", data = sharedf, family=sm.families.Binomial()).fit()
 print(log_reg1.summary())
 
-# No improvement in R sq value
+# No improvement in R-squared or adjusted R-squared value 
+# Since variables were removed, we didn't expect to see this improvement either.
+
+# Although, this tells us that we can build our models using lesser number of features as well, and we'll explain the same variability in response.
+
+# However, since with p-values, we can only fail to reject the null hypothesis. This tells us that we don't have enough evidence in our dataset to reject whether the coefficients for these features are 0 or not.
+
+# For the rest of the models, we'll include all the features that are avaialble to us after removing the correlated once.  
 
 # %%
 ctoc = pd.DataFrame(coefs[coefs['pvalue']<0.05].index)
@@ -206,14 +215,16 @@ plt.plot(range(1,30),test_error_rates,label='Test Error')
 plt.legend()
 plt.ylabel('Error Rate')
 plt.xlabel("K Value")
+
 #%%[markdown]
+# We picked the ideal K value according to this error graph (17) and then re-ran the above code. Earlier K was an arbitrary value.
 #The k-nearest neighbors method, generally known as KNN or k-NN, is a non-parametric, supervised learning classifier that utilizes proximity to classify or predict the grouping of a single data point.
 #For the KNN algorithm, we have plotted the error rate vs accuracy plot, based on the plot we can identify that the error rate was low when the k value is at 17. So, by looking at that plot we found that the optimum value of the k is 17.
 #So, for the KNN algorithm, we choose the number of neighbors as 17 and the accuracy of the model with this K value was 63%. 
 #From the confusion matrix, we can interpret that 2714 are classified as false negative and 2001 are classified as false positive.
 
 # %%
-#ROC for KNN
+# Plotting ROC for KNN
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
 y_scores=knn_model.predict_proba(Scaled_Xtest)
@@ -230,7 +241,7 @@ plt.xlabel('False Positive Rate')
 plt.title('ROC Curve of kNN')
 plt.show()
 # %%
-# Logistic Regression 
+# # Running Logistic Regression again from the Sklearn library now.
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score,confusion_matrix,classification_report
 from sklearn.metrics import plot_roc_curve
@@ -249,13 +260,15 @@ importances = pd.DataFrame(data={
 })
 importances = importances.sort_values(by='Importance', ascending=False)
 print(importances.head(100))
+# Since our X_train and X_test are standard scaled, looking at this we'll identify which are the important features in predicting our target.
+
 #%%[markdown]
 #When the dependent variable is dichotomous, logistic regression is the proper regression strategy to use (binary). While implementing the logistic regression model, the accuracy of the model is 65%.
 #From the confusion matrix, we get 2316 as a false negative and 2105 as a false positive.
 #The AUC for the logistic model is 0.7, from the AUC we can say that 70% chance that the model will be able to distinguish between positive class and negative class, and the logistic model is said to be a considerable model. 
 
 #%%
-#Decision Tree classification
+## Running the Decision Tree classificatier now
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import plot_tree
 
@@ -271,7 +284,7 @@ pd.DataFrame(index=X.columns,data=model.feature_importances_,columns=['Feature I
 plt.figure(figsize=(12,8),dpi=200)
 #%%
 plt.figure(figsize = (20,20), dpi = 200)
-plot_tree(model,filled=True,feature_names=X.columns);
+plot_tree(model,filled=True,feature_names=X.columns)
 # %%
 dff = pd.DataFrame(index=X.columns,data=model.feature_importances_,columns=['Feature Importance']).sort_values('Feature Importance', ascending=False)
 print(dff.head(17))
@@ -293,15 +306,7 @@ plt.ylabel('True Positive Rate')
 plt.xlabel('False Positive Rate')
 plt.title('ROC Curve of Decision Tree')
 plt.show()
-#%%
-for depth in range(2, 25):
- 
-    model_dc = DecisionTreeClassifier(max_depth=depth, random_state=101)
-    model_dc.fit(Scaled_Xtrain,y_train)
- 
-    preds = model_dc.predict(Scaled_Xtest)
- 
-    print(f'{depth} accuracy score: {accuracy_score(y_test, preds)}')
+
 #%%
 #We have implemented the decision tree for the given data set with a maximum depth of 5 first, we considered the decision tree with the default parameters. The accuracy of the model is 62%. So, then we adjusted some of the parameters in the decision tree function and tried different depths. We considered the decision tree with maximum depth at 5 is considered as optimum with an accuracy of 64%. 
 #  From the confusion matrix, we can analyze that 2528 rows are classified as false negative and 2048 are classified as false positive.
@@ -320,6 +325,7 @@ pruned_tree_2.fit(Scaled_Xtrain,y_train)
 print(classification_report(y_test,base_pred))
 dff = pd.DataFrame(index=X.columns,data=pruned_tree_2.feature_importances_,columns=['Feature Importance']).sort_values('Feature Importance', ascending=False)
 print(dff.head(17))
+
 # %%
 #Random Forest Classifier
 from sklearn.ensemble import RandomForestClassifier
@@ -331,6 +337,7 @@ preds = modelforrc.predict(Scaled_Xtest)
 cff = confusion_matrix(y_test,preds)
 sns.heatmap(cff, annot=True,cmap='Blues', fmt='g')
 print(classification_report(y_test,preds))
+
 #%%
 #ROC for decision tree
 from sklearn.metrics import roc_curve

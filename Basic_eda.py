@@ -289,6 +289,7 @@ plt.ylabel('Error Rate')
 plt.xlabel("K Value")
 # We can observe from the plot that the optium value for the k is 14, and increasing the 
 # k values furthermore will result in the decrease of the error percentage from 0.38 to 0.37.
+
 #%%
 #ROC for KNN
 from sklearn.metrics import roc_curve
