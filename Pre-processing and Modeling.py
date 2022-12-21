@@ -326,6 +326,15 @@ print(classification_report(y_test,base_pred))
 dff = pd.DataFrame(index=X.columns,data=pruned_tree_2.feature_importances_,columns=['Feature Importance']).sort_values('Feature Importance', ascending=False)
 print(dff.head(17))
 
+#%%
+for depth in range(2, 25):
+ 
+    model_dc = DecisionTreeClassifier(max_depth=depth, random_state=101)
+    model_dc.fit(Scaled_Xtrain,y_train)
+ 
+    preds = model_dc.predict(Scaled_Xtest)
+ 
+    print(f'{depth} accuracy score: {accuracy_score(y_test, preds)}')
 # %%
 #Random Forest Classifier
 from sklearn.ensemble import RandomForestClassifier
@@ -388,8 +397,10 @@ plt.xlabel('False Positive Rate')
 plt.title('ROC Curve of svc')
 plt.show()
 
+# A Support Vector Machine (SVM) is a discriminative classifier formally defined by a separating hyperplane. In other words, given labeled training data (supervised learning), the algorithm outputs an optimal hyperplane which categorizes new examples.
+# An SVM model is a representation of the examples as points in space, mapped so that the examples of the separate categories are divided by a clear gap that is as wide as possible. In addition to performing linear classification, SVMs can efficiently perform a non-linear classification, implicitly mapping their inputs into high-dimensional feature spaces. From this model, accuracy is 65%. 
 
-
+# From the confusion matrix, we can identify that 2227 are classified as false negative and 2190 are classified as false positive.
 ##
 # %%
 
